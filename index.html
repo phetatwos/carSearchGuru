@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Car Deal Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --accent: #c8f74a;
+    --accent-dim: #8faa35;
+    --text: #f0f0f0;
+    --text-dim: #888;
+    --red: #ff5c5c;
+    --green: #c8f74a;
+    --yellow: #ffd666;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 20px 16px 60px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  header {
+    padding: 24px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  header h1 span {
+    color: var(--accent);
+  }
+
+  header p {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  section {
+    margin-bottom: 20px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .add-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .add-btn:hover { background: var(--surface2); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .card-info { flex: 1; min-width: 0; }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    margin-top: 2px;
+  }
+
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .remove-btn:hover { color: var(--red); }
+
+  .filters-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .filter-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .filter-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .filter-item input, .filter-item select {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    width: 100%;
+    outline: none;
+  }
+
+  .filter-item select option { background: var(--surface); }
+
+  .run-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #0e0e0e;
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.15s;
+    letter-spacing: -0.3px;
+  }
+  .run-btn:hover { background: #d4fc5a; transform: translateY(-1px); }
+  .run-btn:active { transform: translateY(0); }
+  .run-btn:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+  .log-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    min-height: 80px;
+    max-height: 260px;
+    overflow-y: auto;
+    display: none;
+    margin-top: 12px;
+  }
+
+  .log-box.visible { display: block; }
+
+  .log-line { color: var(--text-dim); }
+  .log-line.ok { color: var(--green); }
+  .log-line.err { color: var(--red); }
+  .log-line.info { color: var(--text); }
+  .log-line.highlight { color: var(--accent); font-weight: 500; }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 12px;
+    display: none;
+    overflow: hidden;
+  }
+  .progress-bar.visible { display: block; }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .modal h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .modal-field {
+    margin-bottom: 12px;
+  }
+
+  .modal-field label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+
+  .modal-field input, .modal-field select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+  }
+  .modal-field input:focus, .modal-field select:focus {
+    border-color: var(--accent);
+  }
+  .modal-field select option { background: var(--surface2); }
+
+  .modal-row { display: flex; gap: 8px; }
+  .modal-row .modal-field { flex: 1; }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .modal-cancel {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .modal-save {
+    flex: 2;
+    background: var(--accent);
+    border: none;
+    color: #0e0e0e;
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+    padding: 20px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .download-btn {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    display: none;
+  }
+  .download-btn.visible { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Car Deal <span>Tracker</span></h1>
+  <p>cargurus.ca · canada</p>
+</header>
+
+<!-- WATCHLIST -->
+<section>
+  <div class="section-header">
+    <span class="section-label">Watchlist</span>
+    <button class="add-btn" onclick="openModal('car')">+ Add Car</button>
+  </div>
+  <div id="watchlist-items">
+    <div class="empty-state">no cars added yet</div>
+  </div>
+</section>
+
+<!-- LOCATIONS -->
+<section>
+  <div class="section-header">
+    <span class="section-label">Locations</span>
+    <button class="add-btn" onclick="openModal('location')">+ Add</button>
+  </div>
+  <div id="location-items">
+    <div class="empty-state">no locations added yet</div>
+  </div>
+</section>
+
+<!-- FILTERS -->
+<section>
+  <div class="section-header">
+    <span class="section-label">Filters</span>
+  </div>
+  <div class="filters-grid">
+    <div class="filter-item">
+      <div class="filter-label">Max Price ($)</div>
+      <input type="number" id="maxPrice" value="40000">
+    </div>
+    <div class="filter-item">
+      <div class="filter-label">Max Mileage (km)</div>
+      <input type="number" id="maxMileage" value="120000">
+    </div>
+    <div class="filter-item">
+      <div class="filter-label">Min Year</div>
+      <input type="number" id="minYear" value="2018">
+    </div>
+    <div class="filter-item">
+      <div class="filter-label">Condition</div>
+      <select id="newUsed">
+        <option value="2">Used</option>
+        <option value="1">New</option>
+        <option value="">Any</option>
+      </select>
+    </div>
+  </div>
+</section>
+
+<!-- RUN -->
+<section>
+  <button class="run-btn" id="runBtn" onclick="runSearches()">🔍 Run Searches</button>
+  <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="log-box" id="logBox"></div>
+  <button class="download-btn" id="downloadBtn">⬇ Download CSV</button>
+</section>
+
+<!-- ADD CAR MODAL -->
+<div class="modal-overlay" id="carModal">
+  <div class="modal">
+    <h3>Add Car to Watchlist</h3>
+    <div class="modal-field">
+      <label>Make</label>
+      <select id="carMakeSelect" onchange="onMakeChange()">
+        <option value="">— Select a make —</option>
+      </select>
+    </div>
+    <div class="modal-field" id="modelFieldWrapper" style="display:none">
+      <label>Model <span style="color:var(--text-dim);font-size:10px;">(optional)</span></label>
+      <select id="carModelSelect">
+        <option value="">All models</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal('car')">Cancel</button>
+      <button class="modal-save" onclick="saveCar()">Add Car</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD LOCATION MODAL -->
+<div class="modal-overlay" id="locationModal">
+  <div class="modal">
+    <h3>Add Location</h3>
+    <div class="modal-field">
+      <label>Postal Code</label>
+      <input type="text" id="locZip" placeholder="e.g. A1B 2C3">
+    </div>
+    <div class="modal-field">
+      <label>Label</label>
+      <input type="text" id="locLabel" placeholder="e.g. Toronto">
+    </div>
+    <div class="modal-field">
+      <label>Search Radius</label>
+      <select id="locDistance">
+        <option value="25">25 km</option>
+        <option value="50">50 km</option>
+        <option value="75">75 km</option>
+        <option value="100" selected>100 km</option>
+        <option value="250">250 km</option>
+        <option value="500">500 km</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal('location')">Cancel</button>
+      <button class="modal-save" onclick="saveLocation()">Add Location</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Makes/Models Data ──────────────────────────────────────────────────────
+const MAKES_DATA = [{"id": "m4", "name": "Acura", "isPopular": true, "models": [{"id": "d3387", "name": "ADX"}, {"id": "d2137", "name": "ILX"}, {"id": "d36", "name": "Integra"}, {"id": "d16", "name": "MDX"}, {"id": "d921", "name": "RDX"}, {"id": "d2278", "name": "TLX"}, {"id": "d191", "name": "CL"}, {"id": "d1787", "name": "CSX"}, {"id": "d1364", "name": "EL"}, {"id": "d17", "name": "NSX"}, {"id": "d2214", "name": "RLX"}, {"id": "d3", "name": "RSX"}, {"id": "d19", "name": "TL"}, {"id": "d20", "name": "TSX"}, {"id": "d2065", "name": "ZDX"}]}, {"id": "m124", "name": "Alfa Romeo", "isPopular": true, "models": [{"id": "d1751", "name": "Giulia"}, {"id": "d2512", "name": "Stelvio"}, {"id": "d3226", "name": "Tonale"}, {"id": "d2277", "name": "4C"}, {"id": "d1468", "name": "Brera"}, {"id": "d1149", "name": "Spider"}]}, {"id": "m19", "name": "Audi", "isPopular": true, "models": [{"id": "d24", "name": "A3"}, {"id": "d25", "name": "A4"}, {"id": "d2149", "name": "A4 Allroad"}, {"id": "d1034", "name": "A5"}, {"id": "d2508", "name": "A5 Sportback"}, {"id": "d27", "name": "A6"}, {"id": "d2201", "name": "A6 Allroad"}, {"id": "d3506", "name": "A6 e-tron Sportback"}, {"id": "d2113", "name": "A7"}, {"id": "d29", "name": "A8"}, {"id": "d3115", "name": "e-tron GT"}, {"id": "d2129", "name": "Q3"}, {"id": "d3142", "name": "Q4 e-tron"}, {"id": "d3143", "name": "Q4 e-tron Sportback"}, {"id": "d1988", "name": "Q5"}, {"id": "d2970", "name": "Q5 Hybrid Plug-in"}, {"id": "d3140", "name": "Q5 Sportback"}, {"id": "d3420", "name": "Q6 e-tron"}, {"id": "d3459", "name": "Q6 e-tron Sportback"}, {"id": "d930", "name": "Q7"}, {"id": "d2792", "name": "Q8"}, {"id": "d3325", "name": "Q8 e-tron"}, {"id": "d3326", "name": "Q8 e-tron Sportback"}, {"id": "d2564", "name": "RS 3"}, {"id": "d2136", "name": "RS 5"}, {"id": "d2700", "name": "RS 5 Sportback"}, {"id": "d2965", "name": "RS 6 Avant"}, {"id": "d2230", "name": "RS 7"}, {"id": "d3126", "name": "RS e-tron GT"}, {"id": "d2993", "name": "RS Q8"}, {"id": "d3461", "name": "S e-tron GT"}, {"id": "d1183", "name": "S3"}, {"id": "d30", "name": "S4"}, {"id": "d1055", "name": "S5"}, {"id": "d2509", "name": "S5 Sportback"}, {"id": "d687", "name": "S6"}, {"id": "d3500", "name": "S6 e-tron Sportback"}, {"id": "d2156", "name": "S7"}, {"id": "d688", "name": "S8"}, {"id": "d2237", "name": "SQ5"}, {"id": "d3138", "name": "SQ5 Sportback"}, {"id": "d3422", "name": "SQ6 e-tron"}, {"id": "d3460", "name": "SQ6 e-tron Sportback"}, {"id": "d3019", "name": "SQ7"}, {"id": "d3020", "name": "SQ8"}, {"id": "d2326", "name": "A3 Sportback"}, {"id": "d2829", "name": "e-tron"}, {"id": "d3242", "name": "e-tron S"}, {"id": "d2157", "name": "Q5 Hybrid"}, {"id": "d1019", "name": "R8"}, {"id": "d992", "name": "RS 4"}, {"id": "d32", "name": "TT"}, {"id": "d2177", "name": "TT RS"}, {"id": "d2176", "name": "TTS"}]}, {"id": "m20", "name": "Bentley", "isPopular": true, "models": [{"id": "d2354", "name": "Bentayga"}, {"id": "d2966", "name": "Bentayga Hybrid"}, {"id": "d35", "name": "Continental GT"}, {"id": "d399", "name": "Continental GTC"}, {"id": "d2288", "name": "Flying Spur"}, {"id": "d398", "name": "Azure"}, {"id": "d34", "name": "Continental Flying Spur"}, {"id": "d2167", "name": "Continental Supersports"}, {"id": "d2051", "name": "Mulsanne"}]}, {"id": "m3", "name": "BMW", "isPopular": true, "models": [{"id": "d2262", "name": "2 Series"}, {"id": "d1512", "name": "3 Series"}, {"id": "d2244", "name": "4 Series"}, {"id": "d1628", "name": "5 Series"}, {"id": "d1517", "name": "7 Series"}, {"id": "d1627", "name": "8 Series"}, {"id": "d3155", "name": "i4"}, {"id": "d3334", "name": "i5"}, {"id": "d3236", "name": "i7"}, {"id": "d3156", "name": "iX"}, {"id": "d2396", "name": "M2"}, {"id": "d390", "name": "M3"}, {"id": "d2258", "name": "M4"}, {"id": "d391", "name": "M5"}, {"id": "d2902", "name": "M8"}, {"id": "d2160", "name": "X1"}, {"id": "d2623", "name": "X2"}, {"id": "d392", "name": "X3"}, {"id": "d2271", "name": "X4"}, {"id": "d2848", "name": "X4 M"}, {"id": "d393", "name": "X5"}, {"id": "d2120", "name": "X5 M"}, {"id": "d1137", "name": "X6"}, {"id": "d2139", "name": "X6 M"}, {"id": "d2656", "name": "X7"}, {"id": "d3278", "name": "XM"}, {"id": "d395", "name": "Z4"}, {"id": "d1052", "name": "1 Series"}, {"id": "d2240", "name": "3 Series Gran Turismo"}, {"id": "d2075", "name": "5 Series Gran Turismo"}, {"id": "d1513", "name": "6 Series"}, {"id": "d2615", "name": "6 Series Gran Turismo"}, {"id": "d2263", "name": "i3"}, {"id": "d2274", "name": "i8"}, {"id": "d825", "name": "M6"}, {"id": "d2847", "name": "X3 M"}, {"id": "d1698", "name": "Z1"}, {"id": "d394", "name": "Z3"}, {"id": "d2161", "name": "Z3 M"}, {"id": "d2162", "name": "Z4 M"}, {"id": "d396", "name": "Z8"}]}, {"id": "m21", "name": "Buick", "isPopular": true, "models": [{"id": "d1029", "name": "Enclave"}, {"id": "d2128", "name": "Encore"}, {"id": "d2901", "name": "Encore GX"}, {"id": "d2398", "name": "Envision"}, {"id": "d3333", "name": "Envista"}, {"id": "d2369", "name": "Allure"}, {"id": "d2305", "name": "Cascada"}, {"id": "d272", "name": "LaCrosse"}, {"id": "d844", "name": "Lucerne"}, {"id": "d274", "name": "Park Avenue"}, {"id": "d277", "name": "Regal"}, {"id": "d2608", "name": "Regal Sportback"}, {"id": "d278", "name": "Rendezvous"}, {"id": "d279", "name": "Riviera"}, {"id": "d281", "name": "Skylark"}, {"id": "d1780", "name": "Somerset"}, {"id": "d2119", "name": "Verano"}]}, {"id": "m22", "name": "Cadillac", "isPopular": true, "models": [{"id": "d2963", "name": "CT4"}, {"id": "d2903", "name": "CT4-V Blackwing"}, {"id": "d2876", "name": "CT5"}, {"id": "d2904", "name": "CT5-V Blackwing"}, {"id": "d142", "name": "Escalade"}, {"id": "d143", "name": "Escalade ESV"}, {"id": "d3392", "name": "Escalade IQ"}, {"id": "d3473", "name": "Escalade IQL"}, {"id": "d3248", "name": "Escalade-V"}, {"id": "d3157", "name": "LYRIQ"}, {"id": "d3444", "name": "LYRIQ-V"}, {"id": "d3403", "name": "OPTIQ"}, {"id": "d3520", "name": "OPTIQ-V"}, {"id": "d3425", "name": "VISTIQ"}, {"id": "d2673", "name": "XT4"}, {"id": "d2393", "name": "XT5"}, {"id": "d2843", "name": "XT6"}, {"id": "d135", "name": "Allante"}, {"id": "d2138", "name": "ATS"}, {"id": "d2269", "name": "ATS Coupe"}, {"id": "d2302", "name": "ATS-V"}, {"id": "d2352", "name": "CT6"}, {"id": "d138", "name": "CTS"}, {"id": "d2084", "name": "CTS Coupe"}, {"id": "d2626", "name": "CTS Sport Wagon"}, {"id": "d139", "name": "CTS-V"}, {"id": "d2085", "name": "CTS-V Coupe"}, {"id": "d140", "name": "DeVille"}, {"id": "d732", "name": "DTS"}, {"id": "d141", "name": "Eldorado"}, {"id": "d144", "name": "Escalade EXT"}, {"id": "d2914", "name": "Escalade Hybrid"}, {"id": "d145", "name": "Fleetwood"}, {"id": "d148", "name": "SRX"}, {"id": "d149", "name": "STS"}, {"id": "d832", "name": "STS-V"}, {"id": "d150", "name": "XLR"}, {"id": "d2141", "name": "XTS"}]}, {"id": "m1", "name": "Chevrolet", "isPopular": true, "models": [{"id": "d602", "name": "Blazer"}, {"id": "d3351", "name": "Blazer EV"}, {"id": "d3567", "name": "Bolt"}, {"id": "d3116", "name": "Bolt EUV"}, {"id": "d2397", "name": "Bolt EV"}, {"id": "d606", "name": "Camaro"}, {"id": "d614", "name": "Colorado"}, {"id": "d1", "name": "Corvette"}, {"id": "d3313", "name": "Corvette E-Ray"}, {"id": "d2076", "name": "Cruze"}, {"id": "d616", "name": "Equinox"}, {"id": "d3267", "name": "Equinox EV"}, {"id": "d617", "name": "Express"}, {"id": "d618", "name": "Express Cargo"}, {"id": "d3090", "name": "Express Chassis"}, {"id": "d622", "name": "Malibu"}, {"id": "d630", "name": "Silverado 1500"}, {"id": "d634", "name": "Silverado 2500HD"}, {"id": "d1027", "name": "Silverado 3500HD"}, {"id": "d3031", "name": "Silverado 3500HD Chassis"}, {"id": "d3222", "name": "Silverado EV"}, {"id": "d2008", "name": "Spark"}, {"id": "d638", "name": "Suburban"}, {"id": "d639", "name": "Tahoe"}, {"id": "d642", "name": "Trailblazer"}, {"id": "d1521", "name": "Traverse"}, {"id": "d2272", "name": "Trax"}, {"id": "d2283", "name": "3100"}, {"id": "d598", "name": "Astro Cargo"}, {"id": "d599", "name": "Avalanche"}, {"id": "d600", "name": "Aveo"}, {"id": "d1610", "name": "C/K 10"}, {"id": "d755", "name": "C/K 1500"}, {"id": "d1612", "name": "C/K 30"}, {"id": "d607", "name": "Caprice"}, {"id": "d608", "name": "Cavalier"}, {"id": "d739", "name": "Chevelle"}, {"id": "d2280", "name": "City Express"}, {"id": "d613", "name": "Cobalt"}, {"id": "d1102", "name": "El Camino"}, {"id": "d1711", "name": "Epica"}, {"id": "d716", "name": "HHR"}, {"id": "d619", "name": "Impala"}, {"id": "d620", "name": "Lumina"}, {"id": "d2321", "name": "Malibu Hybrid"}, {"id": "d623", "name": "Malibu Maxx"}, {"id": "d3006", "name": "Master 85"}, {"id": "d625", "name": "Monte Carlo"}, {"id": "d1106", "name": "Nova"}, {"id": "d2370", "name": "Orlando"}, {"id": "d2703", "name": "R/V 10"}, {"id": "d632", "name": "Silverado 1500HD"}, {"id": "d2059", "name": "Silverado Hybrid"}, {"id": "d631", "name": "Silverado SS"}, {"id": "d2112", "name": "Sonic"}, {"id": "d2205", "name": "Spark EV"}, {"id": "d641", "name": "Tracker"}, {"id": "d643", "name": "Trailblazer EXT"}, {"id": "d644", "name": "Uplander"}, {"id": "d645", "name": "Venture"}, {"id": "d2012", "name": "Volt"}]}, {"id": "m23", "name": "Chrysler", "isPopular": true, "models": [{"id": "d2106", "name": "200"}, {"id": "d165", "name": "300"}, {"id": "d3103", "name": "Grand Caravan"}, {"id": "d177", "name": "Pacifica"}, {"id": "d2478", "name": "Pacifica Hybrid"}, {"id": "d945", "name": "Aspen"}, {"id": "d168", "name": "Cirrus"}, {"id": "d170", "name": "Crossfire"}, {"id": "d171", "name": "Crossfire SRT-6"}, {"id": "d174", "name": "Le Baron"}, {"id": "d175", "name": "LHS"}, {"id": "d176", "name": "New Yorker"}, {"id": "d178", "name": "Prowler"}, {"id": "d179", "name": "PT Cruiser"}, {"id": "d180", "name": "Sebring"}, {"id": "d181", "name": "TC"}, {"id": "d182", "name": "Town & Country"}]}, {"id": "m24", "name": "Dodge", "isPopular": true, "models": [{"id": "d894", "name": "Challenger"}, {"id": "d733", "name": "Charger"}, {"id": "d3474", "name": "Charger Daytona"}, {"id": "d651", "name": "Durango"}, {"id": "d653", "name": "Grand Caravan"}, {"id": "d3260", "name": "Hornet"}, {"id": "d1135", "name": "Journey"}, {"id": "d646", "name": "Avenger"}, {"id": "d932", "name": "Caliber"}, {"id": "d647", "name": "Caravan"}, {"id": "d895", "name": "Coronet"}, {"id": "d649", "name": "Dakota"}, {"id": "d896", "name": "Dart"}, {"id": "d655", "name": "Magnum"}, {"id": "d657", "name": "Neon"}, {"id": "d899", "name": "Nitro"}, {"id": "d665", "name": "RAM 1500"}, {"id": "d667", "name": "RAM 2500"}, {"id": "d668", "name": "RAM 3500"}, {"id": "d675", "name": "Sprinter Cargo"}, {"id": "d674", "name": "Sprinter Passenger"}, {"id": "d676", "name": "Stealth"}, {"id": "d678", "name": "Viper"}]}, {"id": "m98", "name": "FIAT", "isPopular": true, "models": [{"id": "d2239", "name": "500e"}, {"id": "d1413", "name": "124"}, {"id": "d1414", "name": "124 Spider"}, {"id": "d1327", "name": "500"}, {"id": "d2199", "name": "500L"}, {"id": "d2306", "name": "500X"}]}, {"id": "m2", "name": "Ford", "isPopular": true, "models": [{"id": "d320", "name": "Bronco"}, {"id": "d3225", "name": "Bronco Raptor"}, {"id": "d3094", "name": "Bronco Sport"}, {"id": "d3024", "name": "E-Series Chassis"}, {"id": "d3114", "name": "E-Transit"}, {"id": "d2506", "name": "EcoSport"}, {"id": "d923", "name": "Edge"}, {"id": "d330", "name": "Escape"}, {"id": "d759", "name": "Escape Hybrid"}, {"id": "d2938", "name": "Escape Hybrid Plug-in"}, {"id": "d333", "name": "Expedition"}, {"id": "d334", "name": "Explorer"}, {"id": "d2786", "name": "Explorer Hybrid"}, {"id": "d337", "name": "F-150"}, {"id": "d3147", "name": "F-150 Lightning"}, {"id": "d341", "name": "F-250 Super Duty"}, {"id": "d343", "name": "F-350 Super Duty"}, {"id": "d3025", "name": "F-350 Super Duty Chassis"}, {"id": "d1022", "name": "F-450 Super Duty"}, {"id": "d3021", "name": "F-550 Super Duty Chassis"}, {"id": "d1060", "name": "Fiesta"}, {"id": "d346", "name": "Focus"}, {"id": "d845", "name": "Fusion"}, {"id": "d1293", "name": "Maverick"}, {"id": "d2", "name": "Mustang"}, {"id": "d2990", "name": "Mustang Mach-E"}, {"id": "d354", "name": "Ranger"}, {"id": "d1067", "name": "Transit Cargo"}, {"id": "d3091", "name": "Transit Chassis"}, {"id": "d2037", "name": "Transit Connect"}, {"id": "d2270", "name": "Transit Passenger"}, {"id": "d1315", "name": "C-Max Energi"}, {"id": "d2920", "name": "C-Max Hybrid"}, {"id": "d2311", "name": "Custom"}, {"id": "d2378", "name": "Deluxe"}, {"id": "d2384", "name": "E-Series"}, {"id": "d331", "name": "Escort"}, {"id": "d336", "name": "Explorer Sport Trac"}, {"id": "d1395", "name": "F-100"}, {"id": "d339", "name": "F-150 SVT Lightning"}, {"id": "d340", "name": "F-250"}, {"id": "d2224", "name": "F-550 Super Duty"}, {"id": "d1307", "name": "Fairlane"}, {"id": "d1049", "name": "Flex"}, {"id": "d2468", "name": "Focus Electric"}, {"id": "d2402", "name": "Focus RS"}, {"id": "d348", "name": "Freestar"}, {"id": "d2197", "name": "Fusion Energi"}, {"id": "d2702", "name": "Fusion Hybrid"}, {"id": "d350", "name": "GT"}, {"id": "d1564", "name": "Model A"}, {"id": "d2303", "name": "Mustang Shelby GT350"}, {"id": "d924", "name": "Mustang Shelby GT500"}, {"id": "d352", "name": "Mustang SVT Cobra"}, {"id": "d353", "name": "Probe"}, {"id": "d355", "name": "Taurus"}, {"id": "d1020", "name": "Taurus X"}, {"id": "d357", "name": "Thunderbird"}, {"id": "d1198", "name": "Torino"}]}, {"id": "m203", "name": "Genesis", "isPopular": true, "models": [{"id": "d2701", "name": "G70"}, {"id": "d2438", "name": "G80"}, {"id": "d2401", "name": "G90"}, {"id": "d3251", "name": "GV60"}, {"id": "d3163", "name": "GV70"}, {"id": "d3038", "name": "GV80"}, {"id": "d3530", "name": "GV80 Coupe"}]}, {"id": "m26", "name": "GMC", "isPopular": true, "models": [{"id": "d925", "name": "Acadia"}, {"id": "d103", "name": "Canyon"}, {"id": "d3362", "name": "Hummer EV Pickup"}, {"id": "d3104", "name": "Hummer EV SUV"}, {"id": "d114", "name": "Savana"}, {"id": "d115", "name": "Savana Cargo"}, {"id": "d3255", "name": "Savana Chassis"}, {"id": "d116", "name": "Sierra 1500"}, {"id": "d2790", "name": "Sierra 1500 Limited"}, {"id": "d119", "name": "Sierra 2500HD"}, {"id": "d973", "name": "Sierra 3500HD"}, {"id": "d3028", "name": "Sierra 3500HD Chassis"}, {"id": "d3395", "name": "Sierra EV"}, {"id": "d2042", "name": "Terrain"}, {"id": "d130", "name": "Yukon"}, {"id": "d132", "name": "Yukon XL"}, {"id": "d2465", "name": "C/K 1500 Series"}, {"id": "d771", "name": "C/K 2500 Series"}, {"id": "d104", "name": "Envoy"}, {"id": "d105", "name": "Envoy XL"}, {"id": "d107", "name": "Jimmy"}, {"id": "d113", "name": "Safari Cargo"}, {"id": "d2921", "name": "Sierra 1500 Hybrid"}, {"id": "d118", "name": "Sierra 2500"}, {"id": "d120", "name": "Sierra 3500"}, {"id": "d126", "name": "Suburban"}, {"id": "d129", "name": "Vandura"}]}, {"id": "m6", "name": "Honda", "isPopular": true, "models": [{"id": "d585", "name": "Accord"}, {"id": "d2256", "name": "Accord Hybrid"}, {"id": "d586", "name": "Civic"}, {"id": "d977", "name": "Civic Coupe"}, {"id": "d2441", "name": "Civic Hatchback"}, {"id": "d2923", "name": "Civic Hybrid"}, {"id": "d2568", "name": "Civic Type R"}, {"id": "d589", "name": "CR-V"}, {"id": "d3002", "name": "CR-V Hybrid"}, {"id": "d744", "name": "Fit"}, {"id": "d1271", "name": "HR-V"}, {"id": "d592", "name": "Odyssey"}, {"id": "d593", "name": "Passport"}, {"id": "d594", "name": "Pilot"}, {"id": "d595", "name": "Prelude"}, {"id": "d3357", "name": "Prologue"}, {"id": "d734", "name": "Ridgeline"}, {"id": "d976", "name": "Accord Coupe"}, {"id": "d2067", "name": "Accord Crosstour"}, {"id": "d2560", "name": "Clarity Hybrid Plug-In"}, {"id": "d2081", "name": "CR-Z"}, {"id": "d2184", "name": "Crosstour"}, {"id": "d590", "name": "Element"}, {"id": "d591", "name": "Insight"}, {"id": "d596", "name": "S2000"}]}, {"id": "m28", "name": "Hyundai", "isPopular": true, "models": [{"id": "d91", "name": "Accent"}, {"id": "d92", "name": "Elantra"}, {"id": "d2144", "name": "Elantra GT"}, {"id": "d3139", "name": "Elantra Hybrid"}, {"id": "d3205", "name": "Elantra N"}, {"id": "d3120", "name": "Ioniq 5"}, {"id": "d3348", "name": "Ioniq 5 N"}, {"id": "d3297", "name": "Ioniq 6"}, {"id": "d3437", "name": "Ioniq 9"}, {"id": "d2663", "name": "Kona"}, {"id": "d2699", "name": "Kona Electric"}, {"id": "d3231", "name": "Kona N"}, {"id": "d2836", "name": "Palisade"}, {"id": "d3535", "name": "Palisade Hybrid"}, {"id": "d3128", "name": "Santa Cruz"}, {"id": "d94", "name": "Santa Fe"}, {"id": "d3144", "name": "Santa Fe Hybrid"}, {"id": "d2383", "name": "Santa Fe Sport"}, {"id": "d2382", "name": "Santa Fe XL"}, {"id": "d96", "name": "Sonata"}, {"id": "d2107", "name": "Sonata Hybrid"}, {"id": "d98", "name": "Tucson"}, {"id": "d3141", "name": "Tucson Hybrid"}, {"id": "d3241", "name": "Tucson Hybrid Plug-In"}, {"id": "d2124", "name": "Veloster"}, {"id": "d2882", "name": "Venue"}, {"id": "d831", "name": "Azera"}, {"id": "d2143", "name": "Elantra Coupe"}, {"id": "d2033", "name": "Elantra Touring"}, {"id": "d942", "name": "Entourage"}, {"id": "d2087", "name": "Equus"}, {"id": "d1510", "name": "Genesis"}, {"id": "d2034", "name": "Genesis Coupe"}, {"id": "d2684", "name": "Ioniq Electric"}, {"id": "d2834", "name": "Ioniq Electric Plus"}, {"id": "d2419", "name": "Ioniq Hybrid"}, {"id": "d2685", "name": "Ioniq Hybrid Plug-In "}, {"id": "d3223", "name": "Santa Fe Hybrid Plug-In"}, {"id": "d2322", "name": "Sonata Plug-In Hybrid"}, {"id": "d2686", "name": "Veloster N"}, {"id": "d943", "name": "Veracruz"}]}, {"id": "m84", "name": "INFINITI", "isPopular": true, "models": [{"id": "d2207", "name": "Q50"}, {"id": "d2247", "name": "QX50"}, {"id": "d3132", "name": "QX55"}, {"id": "d2243", "name": "QX60"}, {"id": "d2248", "name": "QX80"}, {"id": "d1138", "name": "EX35"}, {"id": "d2182", "name": "EX37"}, {"id": "d573", "name": "FX35"}, {"id": "d574", "name": "FX45"}, {"id": "d1990", "name": "FX50"}, {"id": "d2088", "name": "G25"}, {"id": "d576", "name": "G35"}, {"id": "d1036", "name": "G37"}, {"id": "d2148", "name": "JX35"}, {"id": "d735", "name": "M35"}, {"id": "d2073", "name": "M37"}, {"id": "d2074", "name": "M56"}, {"id": "d2208", "name": "Q50 Hybrid"}, {"id": "d2251", "name": "Q60"}, {"id": "d2289", "name": "Q70L"}, {"id": "d2356", "name": "QX30"}, {"id": "d584", "name": "QX56"}, {"id": "d2253", "name": "QX60 Hybrid"}, {"id": "d2242", "name": "QX70"}]}, {"id": "m31", "name": "Jaguar", "isPopular": true, "models": [{"id": "d2360", "name": "F-PACE"}, {"id": "d2613", "name": "E-PACE"}, {"id": "d2209", "name": "F-TYPE"}, {"id": "d2672", "name": "I-PACE"}, {"id": "d283", "name": "S-TYPE"}, {"id": "d285", "name": "X-TYPE"}, {"id": "d2368", "name": "XE"}, {"id": "d1136", "name": "XF"}, {"id": "d286", "name": "XJ-Series"}, {"id": "d288", "name": "XK-Series"}]}, {"id": "m32", "name": "Jeep", "isPopular": true, "models": [{"id": "d488", "name": "Cherokee"}, {"id": "d905", "name": "Compass"}, {"id": "d2021", "name": "Gladiator"}, {"id": "d490", "name": "Grand Cherokee"}, {"id": "d3212", "name": "Grand Cherokee 4xe"}, {"id": "d3108", "name": "Grand Cherokee L"}, {"id": "d491", "name": "Grand Wagoneer"}, {"id": "d3429", "name": "Grand Wagoneer L"}, {"id": "d906", "name": "Patriot"}, {"id": "d2268", "name": "Renegade"}, {"id": "d493", "name": "Wagoneer"}, {"id": "d3430", "name": "Wagoneer L"}, {"id": "d3431", "name": "Wagoneer S"}, {"id": "d494", "name": "Wrangler"}, {"id": "d3134", "name": "Wrangler 4xe"}, {"id": "d1549", "name": "CJ-7"}, {"id": "d849", "name": "Commander"}, {"id": "d492", "name": "Liberty"}, {"id": "d3564", "name": "Recon"}]}, {"id": "m33", "name": "Kia", "isPopular": true, "models": [{"id": "d3117", "name": "Carnival"}, {"id": "d3408", "name": "Carnival Hybrid"}, {"id": "d3503", "name": "EV4"}, {"id": "d3645", "name": "EV5"}, {"id": "d3127", "name": "EV6"}, {"id": "d3322", "name": "EV9"}, {"id": "d2043", "name": "Forte"}, {"id": "d2153", "name": "Forte5"}, {"id": "d3384", "name": "K4"}, {"id": "d3504", "name": "K4 Hatchback"}, {"id": "d3092", "name": "K5"}, {"id": "d2405", "name": "Niro"}, {"id": "d2838", "name": "Niro EV"}, {"id": "d2653", "name": "Niro Hybrid Plug-In"}, {"id": "d158", "name": "Optima"}, {"id": "d2152", "name": "Rio5"}, {"id": "d160", "name": "Sedona"}, {"id": "d2991", "name": "Seltos"}, {"id": "d162", "name": "Sorento"}, {"id": "d3106", "name": "Sorento Hybrid"}, {"id": "d3224", "name": "Sorento Plug-In Hybrid "}, {"id": "d2020", "name": "Soul"}, {"id": "d164", "name": "Sportage"}, {"id": "d3239", "name": "Sportage Hybrid"}, {"id": "d3244", "name": "Sportage Hybrid Plug-In"}, {"id": "d2830", "name": "Telluride"}, {"id": "d157", "name": "Amanti"}, {"id": "d1169", "name": "Borrego"}, {"id": "d2215", "name": "Cadenza"}, {"id": "d2044", "name": "Forte Koup"}, {"id": "d2376", "name": "Magentis"}, {"id": "d2154", "name": "Optima Hybrid"}, {"id": "d2406", "name": "Optima Hybrid Plug-In "}, {"id": "d159", "name": "Rio"}, {"id": "d958", "name": "Rondo"}, {"id": "d2290", "name": "Soul EV"}, {"id": "d163", "name": "Spectra"}, {"id": "d2510", "name": "Stinger"}]}, {"id": "m35", "name": "Land Rover", "isPopular": true, "models": [{"id": "d151", "name": "Defender"}, {"id": "d152", "name": "Discovery"}, {"id": "d2304", "name": "Discovery Sport"}, {"id": "d156", "name": "Range Rover"}, {"id": "d2121", "name": "Range Rover Evoque"}, {"id": "d834", "name": "Range Rover Sport"}, {"id": "d2558", "name": "Range Rover Velar"}, {"id": "d927", "name": "LR2"}, {"id": "d155", "name": "LR3"}, {"id": "d2041", "name": "LR4"}]}, {"id": "m37", "name": "Lexus", "isPopular": true, "models": [{"id": "d2720", "name": "ES"}, {"id": "d2721", "name": "ES Hybrid"}, {"id": "d2063", "name": "GX"}, {"id": "d2824", "name": "IS"}, {"id": "d2400", "name": "LC"}, {"id": "d2409", "name": "LC Hybrid"}, {"id": "d3040", "name": "LS"}, {"id": "d3041", "name": "LS Hybrid"}, {"id": "d3042", "name": "LX"}, {"id": "d3438", "name": "LX Hybrid"}, {"id": "d2616", "name": "NX"}, {"id": "d2294", "name": "NX Hybrid"}, {"id": "d2827", "name": "RC"}, {"id": "d2297", "name": "RC F"}, {"id": "d2647", "name": "RX"}, {"id": "d2053", "name": "RX Hybrid"}, {"id": "d3289", "name": "RZ"}, {"id": "d3343", "name": "TX"}, {"id": "d3345", "name": "TX Hybrid"}, {"id": "d2722", "name": "UX Hybrid"}, {"id": "d2115", "name": "CT Hybrid"}, {"id": "d2822", "name": "GS"}, {"id": "d918", "name": "GS Hybrid"}, {"id": "d2038", "name": "HS 250h"}, {"id": "d3043", "name": "SC"}]}, {"id": "m38", "name": "Lincoln", "isPopular": true, "models": [{"id": "d524", "name": "Aviator"}, {"id": "d2884", "name": "Corsair"}, {"id": "d2680", "name": "Nautilus"}, {"id": "d530", "name": "Navigator"}, {"id": "d526", "name": "Continental"}, {"id": "d527", "name": "LS"}, {"id": "d762", "name": "Mark LT"}, {"id": "d528", "name": "Mark VII"}, {"id": "d2259", "name": "MKC"}, {"id": "d1152", "name": "MKS"}, {"id": "d2032", "name": "MKT"}, {"id": "d928", "name": "MKX"}, {"id": "d974", "name": "MKZ"}, {"id": "d2664", "name": "MKZ Hybrid"}, {"id": "d531", "name": "Town Car"}]}, {"id": "m40", "name": "Maserati", "isPopular": true, "models": [{"id": "d3385", "name": "GranCabrio"}, {"id": "d1465", "name": "GranTurismo"}, {"id": "d3237", "name": "Grecale"}, {"id": "d2415", "name": "Levante"}, {"id": "d3162", "name": "MC20"}, {"id": "d1876", "name": "Biturbo"}, {"id": "d400", "name": "Coupe"}, {"id": "d1456", "name": "Ghibli"}, {"id": "d401", "name": "GranSport"}, {"id": "d402", "name": "Quattroporte"}, {"id": "d403", "name": "Spyder"}]}, {"id": "m42", "name": "Mazda", "isPopular": true, "models": [{"id": "d2301", "name": "CX-3"}, {"id": "d2875", "name": "CX-30"}, {"id": "d2133", "name": "CX-5"}, {"id": "d3215", "name": "CX-50"}, {"id": "d3381", "name": "CX-70"}, {"id": "d1023", "name": "CX-9"}, {"id": "d3315", "name": "CX-90"}, {"id": "d214", "name": "MAZDA3"}, {"id": "d2385", "name": "MAZDA3 Sport"}, {"id": "d215", "name": "MAZDA6"}, {"id": "d3085", "name": "MX-5"}, {"id": "d221", "name": "MX-5 Miata"}, {"id": "d213", "name": "B-Series"}, {"id": "d935", "name": "CX-7"}, {"id": "d1655", "name": "MAZDA2"}, {"id": "d840", "name": "MAZDA5"}, {"id": "d216", "name": "MAZDASPEED MX-5 Miata"}, {"id": "d941", "name": "MAZDASPEED3"}, {"id": "d3203", "name": "MX-30"}, {"id": "d3396", "name": "MX-30 EV"}, {"id": "d224", "name": "Protege"}, {"id": "d225", "name": "Protege5"}, {"id": "d226", "name": "RX-7"}, {"id": "d227", "name": "RX-8"}, {"id": "d228", "name": "Tribute"}]}, {"id": "m43", "name": "Mercedes-Benz", "isPopular": true, "models": [{"id": "d1206", "name": "A-Class"}, {"id": "d2282", "name": "AMG GT"}, {"id": "d2071", "name": "B-Class"}, {"id": "d66", "name": "C-Class"}, {"id": "d2216", "name": "CLA"}, {"id": "d3375", "name": "CLE"}, {"id": "d76", "name": "E-Class"}, {"id": "d3107", "name": "E-Class All-Terrain"}, {"id": "d3252", "name": "EQB"}, {"id": "d3253", "name": "EQE"}, {"id": "d3279", "name": "EQE SUV"}, {"id": "d3129", "name": "EQS"}, {"id": "d3275", "name": "EQS SUV"}, {"id": "d3383", "name": "eSprinter"}, {"id": "d78", "name": "G-Class"}, {"id": "d2286", "name": "GLA"}, {"id": "d2905", "name": "GLB"}, {"id": "d2361", "name": "GLC"}, {"id": "d2317", "name": "GLE"}, {"id": "d2421", "name": "GLS"}, {"id": "d80", "name": "M-Class"}, {"id": "d82", "name": "S-Class"}, {"id": "d84", "name": "SL-Class"}, {"id": "d1830", "name": "Sprinter"}, {"id": "d3113", "name": "Sprinter Cab Chassis"}, {"id": "d2219", "name": "Sprinter Cargo"}, {"id": "d58", "name": "190-Class"}, {"id": "d2450", "name": "250"}, {"id": "d59", "name": "300-Class"}, {"id": "d2308", "name": "380-Class"}, {"id": "d63", "name": "500-Class"}, {"id": "d71", "name": "CL-Class"}, {"id": "d74", "name": "CLK"}, {"id": "d751", "name": "CLS"}, {"id": "d936", "name": "GL-Class"}, {"id": "d1618", "name": "GLK"}, {"id": "d2348", "name": "Metris"}, {"id": "d829", "name": "R-Class"}, {"id": "d2394", "name": "SLC"}, {"id": "d87", "name": "SLK"}, {"id": "d90", "name": "SLR McLaren"}, {"id": "d2078", "name": "SLS"}]}, {"id": "m45", "name": "MINI", "isPopular": true, "models": [{"id": "d436", "name": "Cooper"}, {"id": "d2098", "name": "Countryman"}, {"id": "d1044", "name": "Cooper Clubman"}, {"id": "d2123", "name": "Cooper Coupe"}, {"id": "d2222", "name": "Cooper Paceman"}, {"id": "d2607", "name": "Countryman Hybrid Plug-in"}, {"id": "d2130", "name": "Roadster"}]}, {"id": "m46", "name": "Mitsubishi", "isPopular": true, "models": [{"id": "d2666", "name": "Eclipse Cross"}, {"id": "d426", "name": "Mirage"}, {"id": "d429", "name": "Outlander"}, {"id": "d2652", "name": "Outlander Hybrid Plug-in"}, {"id": "d2377", "name": "RVR"}, {"id": "d1799", "name": "Delica"}, {"id": "d417", "name": "Eclipse"}, {"id": "d418", "name": "Eclipse Spyder"}, {"id": "d419", "name": "Endeavor"}, {"id": "d421", "name": "Galant"}, {"id": "d2166", "name": "i-MiEV"}, {"id": "d422", "name": "Lancer"}, {"id": "d423", "name": "Lancer Evolution"}, {"id": "d424", "name": "Lancer Sportback"}, {"id": "d2420", "name": "Mirage G4"}]}, {"id": "m12", "name": "Nissan", "isPopular": true, "models": [{"id": "d237", "name": "Altima"}, {"id": "d3216", "name": "Ariya"}, {"id": "d238", "name": "Armada"}, {"id": "d240", "name": "Frontier"}, {"id": "d2660", "name": "Kicks"}, {"id": "d3462", "name": "Kicks Play"}, {"id": "d2077", "name": "LEAF"}, {"id": "d1352", "name": "Micra"}, {"id": "d243", "name": "Murano"}, {"id": "d2200", "name": "NV200"}, {"id": "d245", "name": "Pathfinder"}, {"id": "d1180", "name": "Qashqai"}, {"id": "d1047", "name": "Rogue"}, {"id": "d3565", "name": "Rogue Plug-In Hybrid"}, {"id": "d249", "name": "Sentra"}, {"id": "d251", "name": "Titan"}, {"id": "d937", "name": "Versa"}, {"id": "d2234", "name": "Versa Note"}, {"id": "d3204", "name": "Z"}, {"id": "d235", "name": "300ZX"}, {"id": "d236", "name": "350Z"}, {"id": "d2018", "name": "370Z"}, {"id": "d1038", "name": "Altima Coupe"}, {"id": "d1764", "name": "Cube"}, {"id": "d1103", "name": "GT-R"}, {"id": "d2072", "name": "Juke"}, {"id": "d242", "name": "Maxima"}, {"id": "d2151", "name": "Murano CrossCabriolet"}, {"id": "d2188", "name": "NV Cargo"}, {"id": "d2189", "name": "NV Passenger"}, {"id": "d2254", "name": "Pathfinder Hybrid"}, {"id": "d248", "name": "Quest"}, {"id": "d2513", "name": "Rogue Sport"}, {"id": "d1245", "name": "Sunny"}, {"id": "d1074", "name": "X-Trail"}, {"id": "d253", "name": "Xterra"}]}, {"id": "m48", "name": "Porsche", "isPopular": true, "models": [{"id": "d2416", "name": "718 Boxster"}, {"id": "d2430", "name": "718 Cayman"}, {"id": "d404", "name": "911"}, {"id": "d410", "name": "Cayenne"}, {"id": "d3208", "name": "Cayenne Coupe"}, {"id": "d2723", "name": "Cayenne E-Hybrid"}, {"id": "d2261", "name": "Macan"}, {"id": "d3416", "name": "Macan Electric"}, {"id": "d1037", "name": "Panamera"}, {"id": "d2930", "name": "Panamera E-Hybrid"}, {"id": "d2974", "name": "Taycan"}, {"id": "d952", "name": "914"}, {"id": "d405", "name": "928"}, {"id": "d407", "name": "968"}, {"id": "d408", "name": "Boxster"}, {"id": "d993", "name": "Cayman"}]}, {"id": "m191", "name": "RAM", "isPopular": true, "models": [{"id": "d2110", "name": "1500"}, {"id": "d2102", "name": "2500"}, {"id": "d2103", "name": "3500"}, {"id": "d2226", "name": "3500 Chassis"}, {"id": "d2225", "name": "4500 Chassis"}, {"id": "d3022", "name": "5500 Chassis"}, {"id": "d2229", "name": "ProMaster"}, {"id": "d3023", "name": "ProMaster Chassis"}, {"id": "d2220", "name": "C/V"}, {"id": "d2105", "name": "Dakota"}, {"id": "d2279", "name": "ProMaster City"}]}, {"id": "m53", "name": "Subaru", "isPopular": true, "models": [{"id": "d2650", "name": "Ascent"}, {"id": "d2134", "name": "BRZ"}, {"id": "d2387", "name": "Crosstrek"}, {"id": "d2388", "name": "Crosstrek Hybrid"}, {"id": "d374", "name": "Forester"}, {"id": "d3442", "name": "Forester Hybrid"}, {"id": "d375", "name": "Impreza"}, {"id": "d378", "name": "Legacy"}, {"id": "d380", "name": "Outback"}, {"id": "d3219", "name": "Solterra"}, {"id": "d3501", "name": "Trailseeker"}, {"id": "d3528", "name": "Uncharted"}, {"id": "d2292", "name": "WRX"}, {"id": "d3295", "name": "Crosstrek Hybrid Plug-In"}, {"id": "d2233", "name": "Impreza WRX"}, {"id": "d376", "name": "Impreza WRX STI"}, {"id": "d1039", "name": "Tribeca"}, {"id": "d2341", "name": "WRX STI"}]}, {"id": "m112", "name": "Tesla", "isPopular": true, "models": [{"id": "d3353", "name": "Cybertruck"}, {"id": "d2475", "name": "Model 3"}, {"id": "d2039", "name": "Model S"}, {"id": "d2132", "name": "Model X"}, {"id": "d3044", "name": "Model Y"}, {"id": "d1041", "name": "Roadster"}]}, {"id": "m7", "name": "Toyota", "isPopular": true, "models": [{"id": "d290", "name": "4Runner"}, {"id": "d3440", "name": "4Runner Hybrid"}, {"id": "d3515", "name": "bZ"}, {"id": "d3516", "name": "bZ Woodland"}, {"id": "d3220", "name": "bZ4X"}, {"id": "d2474", "name": "C-HR"}, {"id": "d292", "name": "Camry"}, {"id": "d2908", "name": "Camry Hybrid"}, {"id": "d295", "name": "Corolla"}, {"id": "d3154", "name": "Corolla Cross"}, {"id": "d3296", "name": "Corolla Cross Hybrid"}, {"id": "d2697", "name": "Corolla Hatchback"}, {"id": "d2840", "name": "Corolla Hybrid"}, {"id": "d1156", "name": "Crown"}, {"id": "d3371", "name": "Crown Signia"}, {"id": "d3243", "name": "GR Corolla"}, {"id": "d2436", "name": "GR86"}, {"id": "d3314", "name": "Grand Highlander"}, {"id": "d3342", "name": "Grand Highlander Hybrid"}, {"id": "d298", "name": "Highlander"}, {"id": "d757", "name": "Highlander Hybrid"}, {"id": "d299", "name": "Land Cruiser"}, {"id": "d300", "name": "Matrix"}, {"id": "d2359", "name": "Mirai"}, {"id": "d15", "name": "Prius"}, {"id": "d2191", "name": "Prius Plug-In Hybrid"}, {"id": "d2418", "name": "Prius Prime"}, {"id": "d306", "name": "RAV4"}, {"id": "d2318", "name": "RAV4 Hybrid"}, {"id": "d3446", "name": "RAV4 Plug-in Hybrid"}, {"id": "d2992", "name": "RAV4 Prime"}, {"id": "d307", "name": "Sequoia"}, {"id": "d308", "name": "Sienna"}, {"id": "d309", "name": "Supra"}, {"id": "d311", "name": "Tacoma"}, {"id": "d3428", "name": "Tacoma Hybrid"}, {"id": "d313", "name": "Tundra"}, {"id": "d3414", "name": "Tundra Hybrid"}, {"id": "d1516", "name": "Venza"}, {"id": "d827", "name": "Yaris"}, {"id": "d1868", "name": "Alphard"}, {"id": "d291", "name": "Avalon"}, {"id": "d293", "name": "Camry Solara"}, {"id": "d294", "name": "Celica"}, {"id": "d2565", "name": "Corolla iM"}, {"id": "d297", "name": "ECHO"}, {"id": "d826", "name": "FJ Cruiser"}, {"id": "d1450", "name": "HiAce"}, {"id": "d302", "name": "MR2 Spyder"}, {"id": "d304", "name": "Pickup"}, {"id": "d2127", "name": "Prius c"}, {"id": "d2150", "name": "Prius v"}]}, {"id": "m55", "name": "Volkswagen", "isPopular": true, "models": [{"id": "d2507", "name": "Atlas"}, {"id": "d2995", "name": "Atlas Cross Sport"}, {"id": "d201", "name": "Beetle"}, {"id": "d198", "name": "Golf"}, {"id": "d199", "name": "Golf GTI"}, {"id": "d2131", "name": "Golf R"}, {"id": "d2307", "name": "Golf SportWagen"}, {"id": "d3098", "name": "ID.4"}, {"id": "d3233", "name": "ID.Buzz"}, {"id": "d200", "name": "Jetta"}, {"id": "d2860", "name": "Jetta GLI"}, {"id": "d202", "name": "Passat"}, {"id": "d3131", "name": "Taos"}, {"id": "d1104", "name": "Tiguan"}, {"id": "d2669", "name": "Arteon"}, {"id": "d193", "name": "Cabrio"}, {"id": "d2014", "name": "CC"}, {"id": "d2284", "name": "e-Golf"}, {"id": "d915", "name": "Eos"}, {"id": "d196", "name": "EuroVan"}, {"id": "d2437", "name": "Golf Alltrack"}, {"id": "d2094", "name": "Jetta SportWagen"}, {"id": "d839", "name": "Rabbit"}, {"id": "d1522", "name": "Routan"}, {"id": "d912", "name": "Scirocco"}, {"id": "d205", "name": "Touareg"}, {"id": "d206", "name": "Vanagon"}]}, {"id": "m56", "name": "Volvo", "isPopular": true, "models": [{"id": "d3358", "name": "EX30"}, {"id": "d3441", "name": "EX40"}, {"id": "d3372", "name": "EX90"}, {"id": "d511", "name": "S60"}, {"id": "d515", "name": "S90"}, {"id": "d2266", "name": "V60"}, {"id": "d2968", "name": "V60 Hybrid Plug-in"}, {"id": "d520", "name": "V90"}, {"id": "d2624", "name": "XC40"}, {"id": "d3307", "name": "XC40 Recharge"}, {"id": "d1629", "name": "XC60"}, {"id": "d523", "name": "XC90"}, {"id": "d1043", "name": "C30"}, {"id": "d3217", "name": "C40 Recharge"}, {"id": "d3404", "name": "EC40"}, {"id": "d510", "name": "S40"}, {"id": "d513", "name": "S70"}, {"id": "d514", "name": "S80"}, {"id": "d518", "name": "V70"}, {"id": "d521", "name": "XC"}, {"id": "d522", "name": "XC70"}]}, {"id": "m79", "name": "AM General", "isPopular": false, "models": [{"id": "d134", "name": "Hummer"}]}, {"id": "m110", "name": "Aston Martin", "isPopular": false, "models": [{"id": "d3341", "name": "DB12"}, {"id": "d3054", "name": "DBX"}, {"id": "d2223", "name": "Vanquish"}, {"id": "d2646", "name": "Vantage"}, {"id": "d2448", "name": "DB11"}, {"id": "d907", "name": "DB7"}, {"id": "d908", "name": "DB9"}, {"id": "d1301", "name": "DBS"}, {"id": "d2086", "name": "Rapide"}, {"id": "d909", "name": "V12 Vanquish"}, {"id": "d2061", "name": "V12 Vantage"}, {"id": "d910", "name": "V8 Vantage"}, {"id": "d3389", "name": "Valour"}]}, {"id": "m96", "name": "Datsun", "isPopular": false, "models": [{"id": "d1335", "name": "260Z"}]}, {"id": "m25", "name": "Ferrari", "isPopular": false, "models": [{"id": "d3240", "name": "296 GTB"}, {"id": "d3336", "name": "296 GTS"}, {"id": "d3288", "name": "Purosangue"}, {"id": "d2994", "name": "Roma"}, {"id": "d3033", "name": "SF90"}, {"id": "d1451", "name": "328"}, {"id": "d1218", "name": "348"}, {"id": "d437", "name": "360"}, {"id": "d2574", "name": "360 Spider"}, {"id": "d2064", "name": "458"}, {"id": "d2333", "name": "488"}, {"id": "d439", "name": "550"}, {"id": "d440", "name": "575M"}, {"id": "d959", "name": "599 GTB Fiorano"}, {"id": "d441", "name": "612 Scaglietti"}, {"id": "d2654", "name": "812"}, {"id": "d2005", "name": "California"}, {"id": "d2572", "name": "California T"}, {"id": "d2135", "name": "F12 Berlinetta"}, {"id": "d443", "name": "F430"}, {"id": "d2573", "name": "F430 Spider"}, {"id": "d3048", "name": "F8"}, {"id": "d2126", "name": "FF"}, {"id": "d2655", "name": "GTC4Lusso T"}, {"id": "d1570", "name": "Mondial"}, {"id": "d2811", "name": "Portofino"}, {"id": "d1121", "name": "Testarossa"}]}, {"id": "m183", "name": "Fisker", "isPopular": false, "models": [{"id": "d1978", "name": "Karma"}, {"id": "d3218", "name": "Ocean"}]}, {"id": "m27", "name": "Hummer", "isPopular": false, "models": [{"id": "d230", "name": "H1"}, {"id": "d231", "name": "H2"}, {"id": "d232", "name": "H2 SUT"}, {"id": "d843", "name": "H3"}, {"id": "d1524", "name": "H3T"}]}, {"id": "m283", "name": "Ineos", "isPopular": false, "models": [{"id": "d3367", "name": "Grenadier"}]}, {"id": "m233", "name": "Karma", "isPopular": false, "models": [{"id": "d2751", "name": "Revero"}]}, {"id": "m34", "name": "Lamborghini", "isPopular": false, "models": [{"id": "d3360", "name": "Revuelto"}, {"id": "d2787", "name": "Urus"}, {"id": "d2125", "name": "Aventador"}, {"id": "d255", "name": "Gallardo"}, {"id": "d2285", "name": "Huracan"}]}, {"id": "m39", "name": "Lotus", "isPopular": false, "models": [{"id": "d3290", "name": "Emira"}, {"id": "d554", "name": "Elise"}, {"id": "d555", "name": "Esprit"}, {"id": "d2058", "name": "Evora"}, {"id": "d852", "name": "Exige"}]}, {"id": "m274", "name": "Lucid", "isPopular": false, "models": [{"id": "d3221", "name": "Air"}]}, {"id": "m41", "name": "Maybach", "isPopular": false, "models": [{"id": "d207", "name": "57"}]}, {"id": "m141", "name": "McLaren", "isPopular": false, "models": [{"id": "d3339", "name": "750S"}, {"id": "d3238", "name": "Artura"}, {"id": "d3397", "name": "GTS"}, {"id": "d2413", "name": "570GT"}, {"id": "d2324", "name": "570S"}, {"id": "d2788", "name": "600LT"}, {"id": "d3245", "name": "620R"}, {"id": "d2300", "name": "650S"}, {"id": "d2365", "name": "675LT"}, {"id": "d2605", "name": "720S"}, {"id": "d3130", "name": "765LT"}, {"id": "d3011", "name": "GT"}, {"id": "d2147", "name": "MP4-12C"}, {"id": "d2795", "name": "Senna"}]}, {"id": "m44", "name": "Mercury", "isPopular": false, "models": [{"id": "d361", "name": "Cougar"}, {"id": "d2342", "name": "Eight"}]}, {"id": "m255", "name": "Mobility Ventures", "isPopular": false, "models": [{"id": "d2972", "name": "MV-1"}]}, {"id": "m85", "name": "Oldsmobile", "isPopular": false, "models": [{"id": "d446", "name": "Alero"}, {"id": "d448", "name": "Bravada"}, {"id": "d454", "name": "Cutlass Supreme"}, {"id": "d2793", "name": "Delta 88"}]}, {"id": "m87", "name": "Plymouth", "isPopular": false, "models": [{"id": "d1061", "name": "GTX"}, {"id": "d3574", "name": "Model Q"}, {"id": "d485", "name": "Prowler"}, {"id": "d1062", "name": "Road Runner"}, {"id": "d1063", "name": "Superbird"}]}, {"id": "m260", "name": "Polestar", "isPopular": false, "models": [{"id": "d3036", "name": "2"}, {"id": "d3291", "name": "3"}, {"id": "d3394", "name": "4"}, {"id": "d3001", "name": "1"}]}, {"id": "m47", "name": "Pontiac", "isPopular": false, "models": [{"id": "d1363", "name": "Beaumont"}, {"id": "d465", "name": "Bonneville"}, {"id": "d978", "name": "Fiero"}, {"id": "d466", "name": "Firebird"}, {"id": "d2046", "name": "G3 Wave"}, {"id": "d944", "name": "G5"}, {"id": "d467", "name": "G6"}, {"id": "d979", "name": "G8"}, {"id": "d468", "name": "Grand Am"}, {"id": "d469", "name": "Grand Prix"}, {"id": "d470", "name": "GTO"}, {"id": "d473", "name": "Montana SV6"}, {"id": "d737", "name": "Solstice"}, {"id": "d475", "name": "Sunfire"}, {"id": "d738", "name": "Torrent"}, {"id": "d477", "name": "Vibe"}]}, {"id": "m243", "name": "Rivian", "isPopular": false, "models": [{"id": "d2839", "name": "R1S"}, {"id": "d2837", "name": "R1T"}]}, {"id": "m49", "name": "Rolls-Royce", "isPopular": false, "models": [{"id": "d3514", "name": "Black Badge Spectre"}, {"id": "d2789", "name": "Cullinan"}, {"id": "d2193", "name": "Ghost"}, {"id": "d413", "name": "Phantom"}, {"id": "d3319", "name": "Spectre"}, {"id": "d411", "name": "Corniche"}, {"id": "d2408", "name": "Dawn"}, {"id": "d956", "name": "Phantom Drophead Coupe"}, {"id": "d2213", "name": "Wraith"}]}, {"id": "m50", "name": "Saab", "isPopular": false, "models": [{"id": "d495", "name": "9-2X"}, {"id": "d496", "name": "9-3"}, {"id": "d497", "name": "9-5"}]}, {"id": "m51", "name": "Saturn", "isPopular": false, "models": [{"id": "d1048", "name": "Astra"}, {"id": "d533", "name": "ION Red Line"}, {"id": "d939", "name": "Sky"}, {"id": "d538", "name": "VUE"}]}, {"id": "m52", "name": "Scion", "isPopular": false, "models": [{"id": "d2140", "name": "FR-S"}, {"id": "d2319", "name": "iM"}, {"id": "d2122", "name": "iQ"}, {"id": "d433", "name": "tC"}, {"id": "d435", "name": "xB"}, {"id": "d1033", "name": "xD"}]}, {"id": "m111", "name": "smart", "isPopular": false, "models": [{"id": "d1040", "name": "fortwo"}, {"id": "d2621", "name": "fortwo electric drive"}]}, {"id": "m54", "name": "Suzuki", "isPopular": false, "models": [{"id": "d1523", "name": "Equator"}, {"id": "d258", "name": "Esteem"}, {"id": "d260", "name": "Grand Vitara"}, {"id": "d946", "name": "SX4"}, {"id": "d268", "name": "XL-7"}]}, {"id": "m279", "name": "VinFast", "isPopular": false, "models": [{"id": "d3280", "name": "VF8"}]}, {"id": "m205", "name": "VPG", "isPopular": false, "models": [{"id": "d2426", "name": "MV-1"}]}, {"id": "m214", "name": "Willys", "isPopular": false, "models": [{"id": "d2692", "name": "CJ2A"}]}];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let watchlist = JSON.parse(localStorage.getItem('cgt_watchlist') || '[]');
+let locations  = JSON.parse(localStorage.getItem('cgt_locations') || '[]');
+let lastCSV    = null;
+
+// ── Populate make dropdown on page load ────────────────────────────────────
+function initMakeDropdown() {
+  const sel = document.getElementById('carMakeSelect');
+  const popular = MAKES_DATA.filter(m => m.isPopular);
+  const other   = MAKES_DATA.filter(m => !m.isPopular);
+
+  const popGroup = document.createElement('optgroup');
+  popGroup.label = 'Popular';
+  popular.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m.id; o.textContent = m.name; popGroup.appendChild(o);
+  });
+
+  const otherGroup = document.createElement('optgroup');
+  otherGroup.label = 'All Makes';
+  other.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m.id; o.textContent = m.name; otherGroup.appendChild(o);
+  });
+
+  sel.appendChild(popGroup);
+  sel.appendChild(otherGroup);
+}
+
+function onMakeChange() {
+  const makeId = document.getElementById('carMakeSelect').value;
+  const wrapper = document.getElementById('modelFieldWrapper');
+  const modelSel = document.getElementById('carModelSelect');
+
+  modelSel.innerHTML = '<option value="">All models</option>';
+
+  if (!makeId) { wrapper.style.display = 'none'; return; }
+
+  const make = MAKES_DATA.find(m => m.id === makeId);
+  if (!make || !make.models.length) { wrapper.style.display = 'none'; return; }
+
+  make.models.forEach(mod => {
+    const o = document.createElement('option');
+    o.value = mod.id; o.textContent = mod.name; modelSel.appendChild(o);
+  });
+  wrapper.style.display = 'block';
+}
+
+// ── Persist ────────────────────────────────────────────────────────────────
+function save() {
+  localStorage.setItem('cgt_watchlist', JSON.stringify(watchlist));
+  localStorage.setItem('cgt_locations',  JSON.stringify(locations));
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function render() {
+  const wEl = document.getElementById('watchlist-items');
+  if (watchlist.length === 0) {
+    wEl.innerHTML = '<div class="empty-state">no cars added yet</div>';
+  } else {
+    wEl.innerHTML = watchlist.map((c, i) => `
+      <div class="card">
+        <div class="card-info">
+          <div class="card-title">${c.label}</div>
+          <div class="card-sub">${c.label}</div>
+        </div>
+        <button class="remove-btn" onclick="removeCar(${i})">×</button>
+      </div>`).join('');
+  }
+
+  const lEl = document.getElementById('location-items');
+  if (locations.length === 0) {
+    lEl.innerHTML = '<div class="empty-state">no locations added yet</div>';
+  } else {
+    lEl.innerHTML = locations.map((l, i) => `
+      <div class="card">
+        <div class="card-info">
+          <div class="card-title">${l.label}</div>
+          <div class="card-sub">${l.zip} · ${l.distance} km</div>
+        </div>
+        <button class="remove-btn" onclick="removeLocation(${i})">×</button>
+      </div>`).join('');
+  }
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────
+function openModal(type) {
+  document.getElementById(type + 'Modal').classList.add('open');
+}
+function closeModal(type) {
+  document.getElementById(type + 'Modal').classList.remove('open');
+}
+
+function saveCar() {
+  const makeId  = document.getElementById('carMakeSelect').value;
+  const modelId = document.getElementById('carModelSelect').value;
+  if (!makeId) return alert('Please select a make.');
+  const make  = MAKES_DATA.find(m => m.id === makeId);
+  const model = make?.models.find(m => m.id === modelId);
+  const label = model ? `${make.name} ${model.name}` : make.name;
+  watchlist.push({ makeId, modelId, label });
+  save(); render(); closeModal('car');
+  document.getElementById('carMakeSelect').value = '';
+  document.getElementById('carModelSelect').innerHTML = '<option value="">All models</option>';
+  document.getElementById('modelFieldWrapper').style.display = 'none';
+}
+
+function saveLocation() {
+  const zip      = document.getElementById('locZip').value.trim().replace(' ', '+');
+  const label    = document.getElementById('locLabel').value.trim();
+  const distance = document.getElementById('locDistance').value;
+  if (!zip || !label) return alert('Postal code and label are required');
+  locations.push({ zip, label, distance: Number(distance) });
+  save(); render(); closeModal('location');
+  document.getElementById('locZip').value = '';
+  document.getElementById('locLabel').value = '';
+}
+
+function removeCar(i)      { watchlist.splice(i, 1); save(); render(); }
+function removeLocation(i) { locations.splice(i, 1); save(); render(); }
+
+// ── Search logic ───────────────────────────────────────────────────────────
+function log(msg, type = '') {
+  const box = document.getElementById('logBox');
+  const line = document.createElement('div');
+  line.className = 'log-line ' + type;
+  line.textContent = msg;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+
+function setProgress(n, total) {
+  document.getElementById('progressFill').style.width = (n / total * 100) + '%';
+}
+
+function extractListing(tile) {
+  const d = tile.data;
+  return {
+    id:           d.id,
+    title:        d.listingTitle,
+    year:         d.ontologyData?.modelYear ?? '',
+    make:         d.ontologyData?.makeName ?? '',
+    model:        d.ontologyData?.modelName ?? '',
+    trim:         d.ontologyData?.trimName ?? '',
+    price:        d.priceData?.current ?? d.priceData?.totalPrice ?? '',
+    mileage:      d.mileageData?.value ?? '',
+    dealRating:   d.dealRating ?? '',
+    dealScore:    d.dealScore != null ? d.dealScore.toFixed(2) : '',
+    daysOnMarket: d.daysOnMarket ?? '',
+    distance:     d.distance != null ? d.distance.toFixed(1) : '',
+    drivetrain:   d.localizedDrivetrain ?? '',
+    transmission: d.localizedTransmission ?? '',
+    engine:       d.localizedEngineName ?? '',
+    vin:          d.vin ?? '',
+    seller:       d.sellerData?.name ?? '',
+    sellerCity:   d.sellerData?.city ?? '',
+    photos:       d.pictureCount ?? 0,
+    url:          `https://www.cargurus.ca/Cars/new/nl_AllNewCars.action#listing=${d.id}`,
+  };
+}
+
+async function searchOne(car, loc, filters) {
+  const path = car.modelId ? `${car.makeId}/${car.modelId}` : car.makeId;
+  const p = new URLSearchParams({
+    zip: loc.zip,
+    distance: String(loc.distance),
+    makeModelTrimPaths: path,
+    sortType: 'DEAL_SCORE',
+    sortDirection: 'ASC',
+    _data: 'routes/($intl).search',
+  });
+  if (filters.newUsed)    p.set('newUsed',    filters.newUsed);
+  if (filters.maxPrice)   p.set('maxPrice',   String(filters.maxPrice));
+  if (filters.maxMileage) p.set('maxMileage', String(filters.maxMileage));
+  if (filters.minYear)    p.set('minYear',    String(filters.minYear));
+
+  const res  = await fetch('https://www.cargurus.ca/search?' + p.toString());
+  const text = await res.text();
+  const data = JSON.parse(text.split('\n')[0]);
+  const tiles = (data.search?.tiles || []).filter(t => t.type.includes('LISTING') && t.data);
+  return { total: data.search?.totalListings ?? 0, listings: tiles.map(extractListing) };
+}
+
+function buildCSV(rows) {
+  const headers = [
+    'id','searchLabel','searchLocation','title','year','make','model','trim',
+    'price','mileage','dealRating','dealScore','daysOnMarket','distance',
+    'drivetrain','transmission','engine','seller','sellerCity','photos','vin','url'
+  ];
+  const escape = v => {
+    const s = String(v ?? '');
+    return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g,'""')}"` : s;
+  };
+  return [headers.join(','), ...rows.map(r => headers.map(h => escape(r[h])).join(','))].join('\n');
+}
+
+async function runSearches() {
+  if (watchlist.length === 0) return alert('Add at least one car to your watchlist.');
+  if (locations.length  === 0) return alert('Add at least one location.');
+
+  const btn = document.getElementById('runBtn');
+  const logBox = document.getElementById('logBox');
+  const progressBar = document.getElementById('progressBar');
+  const downloadBtn = document.getElementById('downloadBtn');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Running...';
+  logBox.innerHTML = '';
+  logBox.classList.add('visible');
+  progressBar.classList.add('visible');
+  downloadBtn.classList.remove('visible');
+  lastCSV = null;
+
+  const filters = {
+    newUsed:    document.getElementById('newUsed').value,
+    maxPrice:   Number(document.getElementById('maxPrice').value) || null,
+    maxMileage: Number(document.getElementById('maxMileage').value) || null,
+    minYear:    Number(document.getElementById('minYear').value) || null,
+  };
+
+  const total = watchlist.length * locations.length;
+  const allResults = [];
+  let done = 0;
+
+  log(`Starting ${total} search${total > 1 ? 'es' : ''}...`, 'info');
+
+  for (const loc of locations) {
+    for (const car of watchlist) {
+      done++;
+      log(`[${done}/${total}] ${car.label} · ${loc.label} (${loc.distance}km)`);
+      try {
+        const result = await searchOne(car, loc, filters);
+        log(`  ✓ ${result.total} listings found (${result.listings.length} loaded)`, 'ok');
+        result.listings.forEach(l => allResults.push({ ...l, searchLabel: car.label, searchLocation: loc.label }));
+      } catch(e) {
+        log(`  ✗ ${e.message}`, 'err');
+      }
+      setProgress(done, total);
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
+
+  log(`\nDone! ${allResults.length} total listings collected.`, 'highlight');
+
+  // Top 5
+  const top5 = [...allResults].sort((a,b) => b.dealScore - a.dealScore).slice(0, 5);
+  if (top5.length) {
+    log('── Top Deals ──', 'info');
+    top5.forEach((l, i) => log(`${i+1}. ${l.title} $${Number(l.price).toLocaleString()} · ${Number(l.mileage).toLocaleString()}km · ${l.dealRating}`));
+  }
+
+  lastCSV = buildCSV(allResults);
+  downloadBtn.classList.add('visible');
+  downloadBtn.onclick = () => {
+    const blob = new Blob([lastCSV], { type: 'text/csv' });
+    Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(blob),
+      download: `car-deals-${new Date().toISOString().slice(0,10)}.csv`
+    }).click();
+  };
+
+  btn.disabled = false;
+  btn.textContent = '🔍 Run Searches';
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+initMakeDropdown();
+render();
+</script>
+</body>
+</html>
