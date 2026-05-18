@@ -642,7 +642,7 @@ async function searchOne(car, loc, filters) {
   if (filters.maxMileage) p.set('maxMileage', String(filters.maxMileage));
   if (filters.minYear)    p.set('minYear',    String(filters.minYear));
 
-  const res  = await fetch('https://www.cargurus.ca/search?' + p.toString());
+  const res  = await fetch('https://dry-flower-1894.phetatwo.workers.dev?' + p.toString());
   const text = await res.text();
   const data = JSON.parse(text.split('\n')[0]);
   const tiles = (data.search?.tiles || []).filter(t => t.type.includes('LISTING') && t.data);
