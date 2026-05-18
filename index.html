@@ -398,6 +398,10 @@
         <option value="">Any</option>
       </select>
     </div>
+    <div class="filter-item" style="grid-column: span 2;">
+      <div class="filter-label">Max Pages Per Search (1 page ≈ 20 listings)</div>
+      <input type="number" id="maxPages" value="5" min="1" max="100">
+    </div>
   </div>
 </section>
 
@@ -565,7 +569,36 @@ function saveCar() {
   if (!makeId) return alert('Please select a make.');
   const make  = MAKES_DATA.find(m => m.id === makeId);
   const model = make?.models.find(m => m.id === modelId);
-  const label = model ? `${make.name} ${model.name}` : make.name;
+
+  // If adding "All models" for a make, remove any specific models of that make first
+  if (!modelId) {
+    const alreadyHasAll = watchlist.some(c => c.makeId === makeId && !c.modelId);
+    if (alreadyHasAll) {
+      alert(`You're already tracking all ${make.name} models.`);
+      return;
+    }
+    // Remove any specific models of this make
+    const removed = watchlist.filter(c => c.makeId === makeId && c.modelId).length;
+    watchlist = watchlist.filter(c => !(c.makeId === makeId && c.modelId));
+    if (removed > 0) {
+      // will show in render
+    }
+  } else {
+    // If adding a specific model, block if "All models" for this make is already tracked
+    const hasAllModels = watchlist.some(c => c.makeId === makeId && !c.modelId);
+    if (hasAllModels) {
+      alert(`You're already tracking all ${make.name} models. Remove that entry first if you want to track specific models.`);
+      return;
+    }
+    // Block duplicate model
+    const alreadyHasModel = watchlist.some(c => c.makeId === makeId && c.modelId === modelId);
+    if (alreadyHasModel) {
+      alert(`${make.name} ${model.name} is already in your watchlist.`);
+      return;
+    }
+  }
+
+  const label = model ? `${make.name} ${model.name}` : `All ${make.name}`;
   watchlist.push({ makeId, modelId, label });
   save(); render(); closeModal('car');
   document.getElementById('carMakeSelect').value = '';
@@ -627,26 +660,66 @@ function extractListing(tile) {
   };
 }
 
-async function searchOne(car, loc, filters) {
+async function fetchPage(params) {
+  const res  = await fetch('https://dry-flower-1894.phetatwo.workers.dev?' + params.toString());
+  const text = await res.text();
+  return JSON.parse(text.split('\n')[0]);
+}
+
+async function searchOne(car, loc, filters, maxPages, logFn) {
   const path = car.modelId ? `${car.makeId}/${car.modelId}` : car.makeId;
-  const p = new URLSearchParams({
+  const baseParams = {
     zip: loc.zip,
     distance: String(loc.distance),
     makeModelTrimPaths: path,
     sortType: 'DEAL_SCORE',
     sortDirection: 'ASC',
     _data: 'routes/($intl).search',
-  });
-  if (filters.newUsed)    p.set('newUsed',    filters.newUsed);
-  if (filters.maxPrice)   p.set('maxPrice',   String(filters.maxPrice));
-  if (filters.maxMileage) p.set('maxMileage', String(filters.maxMileage));
-  if (filters.minYear)    p.set('minYear',    String(filters.minYear));
+  };
+  if (filters.newUsed)    baseParams.newUsed    = filters.newUsed;
+  if (filters.maxPrice)   baseParams.maxPrice   = String(filters.maxPrice);
+  if (filters.maxMileage) baseParams.maxMileage = String(filters.maxMileage);
+  if (filters.minYear)    baseParams.minYear    = String(filters.minYear);
 
-  const res  = await fetch('https://dry-flower-1894.phetatwo.workers.dev?' + p.toString());
-  const text = await res.text();
-  const data = JSON.parse(text.split('\n')[0]);
-  const tiles = (data.search?.tiles || []).filter(t => t.type.includes('LISTING') && t.data);
-  return { total: data.search?.totalListings ?? 0, listings: tiles.map(extractListing) };
+  const allListings = [];
+  let pageReceipt = null;
+  let pageAlignment = null;
+  let seenSponsored = null;
+  let pageNumber = 1;
+  let totalListings = 0;
+  let totalPages = 1;
+
+  while (pageNumber <= maxPages) {
+    const p = new URLSearchParams(baseParams);
+    if (pageReceipt)   p.set('pageReceipt',   pageReceipt);
+    if (pageAlignment) p.set('pageAlignment', pageAlignment);
+    if (seenSponsored) p.set('seenSponsored', seenSponsored);
+
+    const data = await fetchPage(p);
+    const search = data.search;
+
+    if (pageNumber === 1) {
+      totalListings = search.totalListings ?? 0;
+      totalPages    = search.pageCount ?? 1;
+    }
+
+    const tiles = (search.tiles || []).filter(t => t.type.includes('LISTING') && t.data);
+    allListings.push(...tiles.map(extractListing));
+
+    // Store pagination tokens for next page
+    pageReceipt   = search.pageReceipt   ?? null;
+    pageAlignment = search.pageAlignment ?? null;
+    seenSponsored = search.seenSponsored ?? null;
+
+    // Stop if no more pages
+    if (pageNumber >= totalPages) break;
+
+    pageNumber++;
+    await new Promise(r => setTimeout(r, 400));
+  }
+
+  const truncated = totalPages > maxPages;
+  return { total: totalListings, pages: Math.min(pageNumber, totalPages), totalPages, truncated, listings: allListings };
 }
 
 function buildCSV(rows) {
@@ -685,20 +758,25 @@ async function runSearches() {
     maxMileage: Number(document.getElementById('maxMileage').value) || null,
     minYear:    Number(document.getElementById('minYear').value) || null,
   };
+  const maxPages = Math.max(1, Math.min(100, Number(document.getElementById('maxPages').value) || 5));
 
   const total = watchlist.length * locations.length;
   const allResults = [];
   let done = 0;
 
-  log(`Starting ${total} search${total > 1 ? 'es' : ''}...`, 'info');
+  log(`Starting ${total} search${total > 1 ? 'es' : ''}... (max ${maxPages} page${maxPages > 1 ? 's' : ''} each)`, 'info');
 
   for (const loc of locations) {
     for (const car of watchlist) {
       done++;
       log(`[${done}/${total}] ${car.label} · ${loc.label} (${loc.distance}km)`);
       try {
-        const result = await searchOne(car, loc, filters);
-        log(`  ✓ ${result.total} listings found (${result.listings.length} loaded)`, 'ok');
+        const result = await searchOne(car, loc, filters, maxPages, log);
+        if (result.truncated) {
+          log(`  ⚠ ${result.pages}/${result.totalPages} pages downloaded — ${result.listings.length} of ${result.total} listings (increase Max Pages to get more)`, 'err');
+        } else {
+          log(`  ✓ All ${result.pages} page${result.pages > 1 ? 's' : ''} downloaded — ${result.listings.length} of ${result.total} listings`, 'ok');
+        }
         result.listings.forEach(l => allResults.push({ ...l, searchLabel: car.label, searchLocation: loc.label }));
       } catch(e) {
         log(`  ✗ ${e.message}`, 'err');
