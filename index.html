@@ -656,7 +656,7 @@ function extractListing(tile) {
     seller:       d.sellerData?.name ?? '',
     sellerCity:   d.sellerData?.city ?? '',
     photos:       d.pictureCount ?? 0,
-    url:          `https://www.cargurus.ca/Cars/new/nl_AllNewCars.action#listing=${d.id}`,
+    url:          `https://www.cargurus.ca/Cars/inventorylisting/vdp.action?listingId=${d.id}`,
   };
 }
 
